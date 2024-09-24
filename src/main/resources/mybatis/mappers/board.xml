@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="board">
+
+	<select id="selectList" resultType="com.javaex.vo.BoardVo">
+		<![CDATA[
+				SELECT b.no, 
+						b.title, 
+				        b.content, 
+				        b.reg_date as regDate, 
+				        u.name as userName,
+				        b.hit,
+				        u.no as userNo
+				FROM board b 
+				JOIN users u ON b.user_no = u.no 
+			]]>
+	</select>
+
+	<select id="selectOne" resultType="com.javaex.vo.BoardVo">
+		<![CDATA[
+				SELECT b.no, 
+						b.title, 
+				        b.content, 
+				        b.reg_date as regDate, 
+				        u.name as userName,
+				        b.hit,
+				        u.no as userNo
+				FROM board b 
+				JOIN users u ON b.user_no = u.no 
+				where b.no = #{no}
+			]]>
+	</select>
+	<insert id="insert" parameterType="com.javaex.vo.BoardVo">
+		<![CDATA[
+		insert into board
+		values(null, #{title}, #{content}, 0, #{regDate}, #{no})
+		]]>
+	</insert>
+
+	<delete id="delete" parameterType="com.javaex.vo.BoardVo">
+		<![CDATA[
+		    DELETE b
+		    FROM board b 
+		    JOIN users u ON b.user_no = u.no 
+		    WHERE b.no = #{no} 
+		    AND u.no = #{userNo}
+		]]>
+	</delete>
+	<update id="update" parameterType="com.javaex.vo.BoardVo">
+		<![CDATA[
+		    update b set
+		    	b.title = #{title}
+		    	b.content = #{content}
+		    FROM board b 
+		    JOIN users u ON b.user_no = u.no 
+		    WHERE b.no = #{no} 
+		    AND u.no = #{userNo}
+		]]>
+	</update>
+
+
+</mapper>
