@@ -13,8 +13,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.javaex.service.UserService;
 import com.javaex.util.JsonResult;
+import com.javaex.util.JwtUtil;
 import com.javaex.vo.UserVo;
 
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 @RestController
@@ -23,7 +25,21 @@ public class UserController {
 	@Autowired
 	private UserService userService;
 
-	@PostMapping(value = "/api/mysites")
+	/* 로그인 */
+	@PostMapping(value = "/api/users/login")
+	public JsonResult login(@RequestBody UserVo userVo, HttpServletResponse response) {
+
+		UserVo authUser = userService.exeLogin(userVo);
+
+		if (authUser == null) {
+			return JsonResult.fail("아이디가 없습니다.");
+		} else {
+			JwtUtil.createTokenAndSetHeader(response, "" + authUser.getNo());
+			return JsonResult.success(authUser);
+		}
+	}
+
+	@PostMapping(value = "/api/users/join")
 	public JsonResult join(@RequestBody UserVo userVo) {
 
 		System.out.println(userVo);
@@ -43,21 +59,6 @@ public class UserController {
 		System.out.println("joinok");
 
 		return "user/joinOk";
-	}
-
-	/* 로그인 */
-	@PostMapping(value = "/api/mysites/login")
-	public JsonResult login(@RequestBody UserVo userVo) {
-
-		UserVo authUser = userService.exeLogin(userVo);
-		System.out.println("세션에서 'no'와 '이름'을 잘 가져왔나" + authUser);
-
-		if (authUser == null) {
-			return JsonResult.fail("해당번호가 없습니다.");
-
-		} else {
-			return JsonResult.success(authUser);
-		}
 	}
 
 	/* 로그아웃 */
