@@ -28,16 +28,16 @@
 				name = #{name}
 				,password = #{password}
 				,gender = #{gender}
-		where no = #{no}
+		where id = #{id}
 		]]>
 	</update>
 
 	<select id="selectModify" parameterType="int" resultType="com.javaex.vo.UserVo">
 		<![CDATA[
-			select no
-				,id
+			select id
 				,password
 				,name
+				,gender
 			from users
 			where no = #{no}
 		]]>

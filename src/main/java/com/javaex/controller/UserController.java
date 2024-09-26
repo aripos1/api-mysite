@@ -1,14 +1,11 @@
 package com.javaex.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.javaex.service.UserService;
@@ -16,8 +13,8 @@ import com.javaex.util.JsonResult;
 import com.javaex.util.JwtUtil;
 import com.javaex.vo.UserVo;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 
 @RestController
 public class UserController {
@@ -39,6 +36,7 @@ public class UserController {
 		}
 	}
 
+	/* 회원가입 */
 	@PostMapping(value = "/api/users/join")
 	public JsonResult join(@RequestBody UserVo userVo) {
 
@@ -46,81 +44,57 @@ public class UserController {
 
 		int count = userService.exeInsert(userVo);
 		if (count != 1) {
-			return JsonResult.fail("해당번호가 없습니다.");
+			return JsonResult.fail("회원가입 실패");
 
 		} else {
 			return JsonResult.success(count);
 		}
 	}
 
-	@RequestMapping(value = "user/joinok", method = { RequestMethod.GET, RequestMethod.POST })
-	public String joinok() {
-
-		System.out.println("joinok");
-
-		return "user/joinOk";
+	/* 중복체크 */
+	@GetMapping(value = "/api/users/duplicate")
+	public JsonResult duplicate(@RequestParam(value = "id") String id) {
+		boolean count = userService.exeDuplicate(id);
+		if (count == false) {
+			return JsonResult.fail("중복입니다.");
+		} else {
+			return JsonResult.success(count);
+		}
 	}
 
-	/* 로그아웃 */
-	@RequestMapping(value = "/user/logout", method = { RequestMethod.GET, RequestMethod.POST })
-	public String logout(HttpSession session) {
-		System.out.println("UserController.logout()");
-
-//		session.removeAttribute("authUser");
-		session.invalidate();
-
-		return "redirect:/main";
+	/* 회원정보가져오기 */
+	@GetMapping("/api/users/me")
+	public JsonResult modifyForm(HttpServletRequest request) {
+		int no = JwtUtil.getNoFromHeader(request);
+		if (no != -1) {
+			// 정상
+			UserVo userVo = userService.exeModifyForm(no);
+			return JsonResult.success(userVo);
+		} else {
+			// 토큰이 없거나(로그인상태아님), 변조된 경우
+			return JsonResult.fail("토큰X, 비로그인, 변조");
+		}
 	}
 
-	@RequestMapping(value = "/user/modifyform", method = { RequestMethod.GET, RequestMethod.POST })
-	public String modifyform(@ModelAttribute UserVo userVo, HttpSession session, Model model) {
-		System.out.println("modifyform");
-		UserVo authUser = (UserVo) session.getAttribute("authUser");
+	@PutMapping("/api/users/me")
+	public JsonResult update(@RequestBody UserVo userVo, HttpServletRequest request) {
 
-		int no = authUser.getNo();
-
-		UserVo modifyUser = userService.exeModifyForm(no);
-
-		model.addAttribute("ModifyUser", modifyUser);
-		/*
-		 * System.out.println(authUser); session.setAttribute("ModifyUser", authUser);
-		 * UserVo modifyUser = userService.exeModifyForm(authUser);
-		 * System.out.println("ModifyUser " + modifyUser);
-		 * model.addAttribute("ModifyUser", modifyUser);
-		 */
-		return "user/modifyForm";
-	}
-
-	@RequestMapping(value = "user/modify", method = { RequestMethod.GET, RequestMethod.POST })
-	public String update(@ModelAttribute UserVo userVo, HttpSession session) {
-		System.out.println("modify,update");
-
-		// DS
-		// userVo name pw gender no(X)
-
-		// 세션의 no 가져오기
-		UserVo authUser = (UserVo) session.getAttribute("authUser");
-		int no = authUser.getNo();
-		System.out.println(no);
-		// userVo + no
+		int no = JwtUtil.getNoFromHeader(request);
 		userVo.setNo(no);
-		System.out.println(userVo);
-		// vo를 서비스에 넘겨서 ㅂ수정 반영
-		userService.exeModify(userVo);
 
+		int count = userService.exeModify(userVo);
 		// 세션의 이름만 변경 (해더의 이름이 변경안됨 현상)
+		userVo.setPassword(null);
+		userVo.setGender(null);
 
-		authUser.setName(userVo.getName());
+		if (count == 1) {
+			// 정상
 
-		return "redirect:/main";
+			return JsonResult.success(userVo);
+		} else {
+			// 토큰이 없거나(로그인상태아님), 변조된 경우
+			return JsonResult.fail("수정 실패");
+		}
 	}
 
-	@ResponseBody
-	@RequestMapping(value = "api/user/duplicate", method = { RequestMethod.GET, RequestMethod.POST })
-	public boolean duplicate(@RequestParam(value = "id") String id) {
-		System.out.println("UserController.idCheck()");
-		boolean can = userService.exeDuplicate(id);
-		System.out.println(id);
-		return can;
-	}
 }

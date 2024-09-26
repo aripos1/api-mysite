@@ -44,9 +44,7 @@ public class UserService {
 	/* 아이디 중복 체크*/
 	public boolean exeDuplicate(String id) {
 		System.out.println("UserService.exeDuplicate()");
-		
 		int count = userDao.selecUserById(id);
-		
 		if(count >= 1) {
 			return false;
 			
