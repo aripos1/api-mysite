@@ -23,7 +23,7 @@ public class AttachService {
 		
 		if(osName.contains("linux")) {
 			System.out.println("리눅스");
-			saveDir ="/app/upload";
+			saveDir ="/home/ec2-user/upload";
 		}else {
 			System.out.println("윈도우");
 			saveDir ="C:\\javaStudy\\upload";
@@ -86,8 +86,8 @@ public class AttachService {
 		System.out.println(file.getOriginalFilename());
 
 		// 사진에 기본정보로 우리가 관리할 정보를 뽑아내야된다 --> db에 저장
-		String saveDir = "C:\\javaStudy\\upload";
-
+//		String saveDir = "/home/ec2-user/upload/";
+		String saveDir = "/app/upload/";
 		// 오리지널 파일명
 		String orgName = file.getOriginalFilename();
 		System.out.println("orgName :" + orgName);
@@ -106,7 +106,7 @@ public class AttachService {
 		String saveName = System.currentTimeMillis() + UUID.randomUUID().toString() + exeName;
 
 		// 파일전체 경로 + 파일명
-		String filePath = saveDir + "\\" + saveName;
+		String filePath = saveDir + saveName;
 		System.out.println(filePath);
 
 		// (1) db 저장
